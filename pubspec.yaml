@@ -1,0 +1,31 @@
+name: fluxy
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.3.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  riverpod:
+  flutter_riverpod:
+  hooks_riverpod:
+  flutter_hooks:
+  cached_network_image: 
+  path_provider: 
+  dio:
+  intl:
+  hive:
+  hive_flutter: 
+  url_launcher:
+  fpdart:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
