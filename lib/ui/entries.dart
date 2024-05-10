@@ -24,7 +24,7 @@ class CategoryEntryList extends HookConsumerWidget {
     final controller = useScrollController();
 
     if (shouldScroll && controller.hasClients) {
-      // controller.jumpTo(0);
+      controller.jumpTo(0);
     }
 
     return MasonryGridView.count(
