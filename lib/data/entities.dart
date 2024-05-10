@@ -6,10 +6,14 @@ class FeedIcon {
 class Feed {
   final String title;
   final int id;
+  final String siteUrl;
   final FeedIcon? icon;
+  final FeedCategory category;
   Feed.fromJson(Map<String, dynamic> json)
       : title = json['title'],
         id = json['id'],
+        siteUrl = json['site_url'],
+        category = FeedCategory.fromJson(json['category']),
         icon = FeedIcon.fromJson(json['icon']);
 }
 
@@ -31,6 +35,7 @@ class FeedEntryEnclosure {
 }
 
 class FeedEntry {
+  final int id;
   final String title;
   final String content;
   final Feed feed;
@@ -53,6 +58,7 @@ class FeedEntry {
 
   FeedEntry.fromJson(Map<String, dynamic> json)
       : title = json['title'],
+        id = json['id'],
         feed = Feed.fromJson(json['feed']),
         publishedAt = DateTime.parse(json['published_at']),
         url = json['url'],

@@ -13,6 +13,7 @@ dependencies:
   flutter_riverpod:
   hooks_riverpod:
   flutter_hooks:
+  flutter_staggered_grid_view: 
   cached_network_image: 
   path_provider: 
   dio:
@@ -20,6 +21,7 @@ dependencies:
   hive:
   hive_flutter: 
   url_launcher:
+  visibility_detector: 
   fpdart:
 
 dev_dependencies:

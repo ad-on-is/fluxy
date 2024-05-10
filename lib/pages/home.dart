@@ -10,22 +10,28 @@ class Home extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categories = [];
-    final p = useState(0);
+    final page = useState(0);
     ref.watch(categoriesProvider).whenData((value) {
       categories.addAll(value);
     });
+
     final pageController = usePageController(initialPage: 0);
     pageController.addListener(() {
-      p.value = pageController.page!.round();
+      final pp = pageController.page!.round();
+      if (pp != page.value) {
+        ref.read(readProvider.notifier).markScrolledAsRead();
+      }
+      page.value = pp;
       if (categories.isNotEmpty) {
         ref
             .read(categoryTitleProvider.notifier)
-            .update((_) => categories[p.value].title);
+            .update((_) => categories[page.value].title);
       }
     });
 
     return PageView(
         controller: pageController,
-        children: categories.map((e) => EntryList(category: e.id)).toList());
+        children:
+            categories.map((e) => CategoryEntryList(category: e.id)).toList());
   }
 }

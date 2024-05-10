@@ -145,7 +145,11 @@ class App extends HookConsumerWidget {
           ],
         ),
       ),
-      body: SafeArea(child: body),
+      body: SafeArea(
+          child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 600),
+        child: body,
+      )),
     );
   }
 }
