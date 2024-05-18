@@ -4,6 +4,7 @@ import 'package:fluxy/data/storage.dart';
 import 'package:fluxy/pages/feeds.dart';
 import 'package:fluxy/pages/home.dart';
 import 'package:fluxy/data/miniflux.dart';
+import 'package:fluxy/ui/login_form.dart';
 import 'package:fluxy/pages/settings.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -38,6 +39,18 @@ class Main extends HookConsumerWidget {
   }
 }
 
+class Login extends StatelessWidget {
+  const Login({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: scaffoldKey,
+      body: const SafeArea(child: LoginForm()),
+    );
+  }
+}
+
 class Loading extends StatelessWidget {
   const Loading({super.key});
 
@@ -48,39 +61,6 @@ class Loading extends StatelessWidget {
       body: const Center(
         child: CircularProgressIndicator(),
       ),
-    );
-  }
-}
-
-class Login extends HookConsumerWidget {
-  const Login({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final urlController = useTextEditingController();
-    final userController = useTextEditingController();
-    final passController = useTextEditingController();
-    return Scaffold(
-      key: scaffoldKey,
-      body: SafeArea(
-          child: Column(children: [
-        TextField(
-          controller: urlController,
-        ),
-        TextField(
-          controller: userController,
-        ),
-        TextField(
-          controller: passController,
-        ),
-        ElevatedButton(
-            onPressed: () async {
-              ref.read(credentialsProvider.notifier).saveCredentials(
-                  Credentials(urlController.text, userController.text,
-                      passController.text));
-            },
-            child: const Text("Login"))
-      ])),
     );
   }
 }

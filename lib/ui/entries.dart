@@ -18,13 +18,12 @@ class CategoryEntryList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final entries = ref.watch(categoryEntries(category));
     final entries = ref.watch(categoryEntries(category));
     final shouldScroll = ref.read(categoryShouldScrollToTop(category));
     final controller = useScrollController();
 
     if (shouldScroll && controller.hasClients) {
-      controller.jumpTo(0);
+      // controller.jumpTo(0);
     }
 
     return MasonryGridView.count(
@@ -46,7 +45,7 @@ class CategoryEntryList extends HookConsumerWidget {
                   print("$id SHOULD LOAD MORE");
                   ref
                       .read(categoryLoadMore(category).notifier)
-                      .update((s) => !s);
+                      .update((s) => s + 1);
                 }
               },
             ));

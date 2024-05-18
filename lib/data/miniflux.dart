@@ -104,34 +104,6 @@ class Miniflux {
 
 final minifluxProvider = Provider((ref) => Miniflux(ref));
 
-class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, int> {
-  Future<List<FeedEntry>> fetch() async {
-    if (arg == 0) {
-      return await ref.read(minifluxProvider).discoveryEntries();
-    }
-    return await ref.read(minifluxProvider).categoryEntries(arg, 0);
-  }
-
-  @override
-  Future<List<FeedEntry>> build(int arg) async {
-    ref.watch(readProvider);
-    print("ENTRIEEEEZ");
-    if (state.value == null) {
-      return fetch();
-    }
-    return state.value!;
-  }
-
-  Future<void> loadMore() async {
-    state = await AsyncValue.guard(() async {
-      final entries = await fetch();
-      return [...state.value ?? [], ...entries];
-    });
-  }
-}
-
-final ce = AsyncNotifierProvider.family<EntriesNotifier, List<FeedEntry>, int>(
-    EntriesNotifier.new);
 final categoriesProvider = FutureProvider<List<FeedCategory>>((ref) async {
   final categories = (await ref.read(minifluxProvider).categories())
       .filter((c) => c.title != "All")
@@ -140,8 +112,8 @@ final categoriesProvider = FutureProvider<List<FeedCategory>>((ref) async {
   return categories;
 });
 
-final categoryLoadMore = StateProvider.family<bool, int>((ref, category) {
-  return false;
+final categoryLoadMore = StateProvider.family<int, int>((ref, category) {
+  return 0;
 });
 
 final categoryShouldScrollToTop =
@@ -151,11 +123,11 @@ final categoryShouldScrollToTop =
 
 final categoryEntriesProvider =
     FutureProvider.family<List<FeedEntry>, int>((ref, category) async {
-  ref.watch(categoryLoadMore(category));
+  final page = ref.watch(categoryLoadMore(category));
   if (category == 0) {
     return await ref.read(minifluxProvider).discoveryEntries();
   } else {
-    return await ref.read(minifluxProvider).categoryEntries(category, 0);
+    return await ref.read(minifluxProvider).categoryEntries(category, page);
   }
 });
 
@@ -165,8 +137,6 @@ final categoryEntries =
   ref
       .watch(categoryEntriesProvider(category))
       .whenData((value) => entries.addAll(value));
-
-  print(entries.length);
 
   return entries
       .filter((e) => !ref.watch(readProvider).contains(e.id))
@@ -207,11 +177,6 @@ final feedsProvider = FutureProvider<List<Feed>>((ref) async {
   return await ref.read(minifluxProvider).feeds();
 });
 
-class ReadFeeds {
-  List<int> read = [];
-  List<int> scrolled = [];
-}
-
 class ReadFeedsNotifier extends Notifier<List<int>> {
   @override
   List<int> build() {
@@ -234,7 +199,6 @@ class ScrolledFeedsNotifier extends Notifier<List<int>> {
     if (!state.contains(id)) {
       state = [...state, id];
     }
-    // print(state);
   }
 
   void clear() {
