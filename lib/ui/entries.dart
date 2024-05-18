@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:fluxy/data/entities.dart';
+import 'package:fluxy/data/entries.dart';
 import 'package:fluxy/data/miniflux.dart';
 import 'package:fluxy/helpers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,9 +19,13 @@ class CategoryEntryList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entries = ref.watch(categoryEntries(category));
+    final entries = [];
     final shouldScroll = ref.read(categoryShouldScrollToTop(category));
     final controller = useScrollController();
+
+    ref.watch(categoryEntries(category)).whenData((value) {
+      entries.addAll(value);
+    });
 
     if (shouldScroll && controller.hasClients) {
       // controller.jumpTo(0);
@@ -33,19 +38,17 @@ class CategoryEntryList extends HookConsumerWidget {
         itemBuilder: (ctx, index) => EntryCard(
               entry: entries[index],
               onLaunched: (int id) {
-                ref
-                    .read(categoryShouldScrollToTop(category).notifier)
-                    .update((s) => true);
-                ref.read(readProvider.notifier).markScrolledAsRead();
+                // ref
+                //     .read(categoryShouldScrollToTop(category).notifier)
+                //     .update((s) => true);
+                ref.read(seenProvider.notifier).markScrolledAsRead();
+                ref.read(categoryEntries(category).notifier).filterRead();
               },
               onSeen: (int id) {
-                ref.read(scrolledProvider.notifier).markAsScrolled(id);
+                ref.read(seenProvider.notifier).markAsSeen(id);
                 final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
                 if (entries[idx].id == id) {
-                  print("$id SHOULD LOAD MORE");
-                  ref
-                      .read(categoryLoadMore(category).notifier)
-                      .update((s) => s + 1);
+                  ref.read(categoryEntries(category).notifier).loadMore();
                 }
               },
             ));

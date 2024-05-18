@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fluxy/data/miniflux.dart';
+import 'package:fluxy/data/entries.dart';
 import 'package:fluxy/ui/entries.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -19,7 +19,7 @@ class Home extends HookConsumerWidget {
     pageController.addListener(() {
       final pp = pageController.page!.round();
       if (pp != page.value) {
-        ref.read(readProvider.notifier).markScrolledAsRead();
+        ref.read(seenProvider.notifier).markScrolledAsRead();
       }
       page.value = pp;
       if (categories.isNotEmpty) {

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxy/data/entities.dart';
+import 'package:fluxy/data/entries.dart';
 import 'package:fluxy/data/storage.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:riverpod/riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:riverpod/riverpod.dart';
 class Miniflux {
   final Dio _client = Dio();
   final Ref ref;
+  final markedAsRead = [];
 
   Miniflux(this.ref) {
     ref.watch(credentialsProvider).whenData((value) => {
@@ -17,13 +19,20 @@ class Miniflux {
           _client.options.headers['Authorization'] =
               'Basic ${base64.encode(utf8.encode("${value.user}:${value.pass}"))}'
         });
-    ref.watch(readProvider);
+    ref.watch(seenProvider);
     _listenForRead();
   }
 
   void _listenForRead() {
-    final read = ref.read(readProvider);
-    markAsRead(read);
+    final seen = ref
+        .read(seenProvider.notifier)
+        .seen
+        .filter((s) => !markedAsRead.contains(s))
+        .toList();
+    print("MINIFLUX: mark as read");
+    // await fetch(() =>
+    //     _client.put('/entries/', data: {"entry_ids": ids, "status": "read"}));
+    markedAsRead.addAll(seen);
   }
 
   Future<dynamic>? me() async {
@@ -94,120 +103,6 @@ class Miniflux {
     String data = response.match((l) => "", (r) => r["data"]);
     return data.substring(data.indexOf("base64,") + "base64,".length);
   }
-
-  Future<void> markAsRead(List<int> ids) async {
-    print("marked as read $ids");
-    // await fetch(() =>
-    //     _client.put('/entries/', data: {"entry_ids": ids, "status": "read"}));
-  }
 }
 
 final minifluxProvider = Provider((ref) => Miniflux(ref));
-
-final categoriesProvider = FutureProvider<List<FeedCategory>>((ref) async {
-  final categories = (await ref.read(minifluxProvider).categories())
-      .filter((c) => c.title != "All")
-      .toList();
-  categories.insert(0, FeedCategory.fromJson({"id": 0, "title": "Discover"}));
-  return categories;
-});
-
-final categoryLoadMore = StateProvider.family<int, int>((ref, category) {
-  return 0;
-});
-
-final categoryShouldScrollToTop =
-    StateProvider.family<bool, int>((ref, category) {
-  return false;
-});
-
-final categoryEntriesProvider =
-    FutureProvider.family<List<FeedEntry>, int>((ref, category) async {
-  final page = ref.watch(categoryLoadMore(category));
-  if (category == 0) {
-    return await ref.read(minifluxProvider).discoveryEntries();
-  } else {
-    return await ref.read(minifluxProvider).categoryEntries(category, page);
-  }
-});
-
-final categoryEntries =
-    StateProvider.family<List<FeedEntry>, int>((ref, category) {
-  final entries = <FeedEntry>[];
-  ref
-      .watch(categoryEntriesProvider(category))
-      .whenData((value) => entries.addAll(value));
-
-  return entries
-      .filter((e) => !ref.watch(readProvider).contains(e.id))
-      .toList();
-});
-
-final feedEntriesProvider =
-    FutureProvider.family<List<FeedEntry>, int>((ref, feed) async {
-  return await ref.read(minifluxProvider).feedEntries(feed, 0);
-});
-
-final feedEntries = StateProvider.family<List<FeedEntry>, int>((ref, feed) {
-  final entries = <FeedEntry>[];
-  if (entries.isEmpty) {
-    ref
-        .watch(feedEntriesProvider(feed))
-        .whenData((value) => entries.addAll(value));
-  }
-
-  return entries
-      .filter((e) => !ref.watch(readProvider).contains(e.id))
-      .toList();
-});
-
-final categoryTitleProvider = StateProvider<String>((ref) {
-  return "Discover";
-});
-
-final feedIconProvider =
-    FutureProvider.family<String, FeedIcon?>((ref, feedIcon) async {
-  if (feedIcon == null) {
-    return "";
-  }
-  return await ref.read(minifluxProvider).feedIcon(feedIcon.iconId);
-});
-
-final feedsProvider = FutureProvider<List<Feed>>((ref) async {
-  return await ref.read(minifluxProvider).feeds();
-});
-
-class ReadFeedsNotifier extends Notifier<List<int>> {
-  @override
-  List<int> build() {
-    return [];
-  }
-
-  void markScrolledAsRead() {
-    state = [...state, ...ref.read(scrolledProvider)];
-    ref.read(scrolledProvider.notifier).clear();
-  }
-}
-
-class ScrolledFeedsNotifier extends Notifier<List<int>> {
-  @override
-  List<int> build() {
-    return [];
-  }
-
-  void markAsScrolled(int id) {
-    if (!state.contains(id)) {
-      state = [...state, id];
-    }
-  }
-
-  void clear() {
-    state = [];
-  }
-}
-
-final readProvider =
-    NotifierProvider<ReadFeedsNotifier, List<int>>(() => ReadFeedsNotifier());
-
-final scrolledProvider = NotifierProvider<ScrolledFeedsNotifier, List<int>>(
-    () => ScrolledFeedsNotifier());
