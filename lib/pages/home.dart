@@ -22,11 +22,16 @@ class Home extends HookConsumerWidget {
         ref.read(seenProvider.notifier).markSeenAsRead();
       }
       page.value = pp;
-      if (categories.isNotEmpty) {
-        ref
-            .read(categoryTitleProvider.notifier)
-            .update((_) => categories[page.value].title);
-      }
+      if (categories.isEmpty) return;
+      ref.read(headerTitleProvider.notifier).update((_) => HeaderTitle(
+          categories[page.value].title,
+          page.value == 0
+              ? const Icon(Icons.category, color: Colors.yellow, size: 15)
+              : const Icon(
+                  Icons.label_important,
+                  color: Colors.blue,
+                  size: 15,
+                )));
     });
 
     return PageView(

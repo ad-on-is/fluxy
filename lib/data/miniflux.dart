@@ -30,10 +30,6 @@ class Miniflux {
       Future<Response> Function() method) async {
     try {
       Response response = await method();
-      if (response.requestOptions.method == "PUT") {
-        print(response.statusCode);
-        print(response.data);
-      }
       return right(response.data);
     } on DioException catch (e) {
       return left(

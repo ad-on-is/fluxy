@@ -70,7 +70,7 @@ class App extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final title = ref.watch(categoryTitleProvider);
+    final ht = ref.watch(headerTitleProvider);
     final body = ref.watch(bodyProvider);
     return Scaffold(
       key: scaffoldKey,
@@ -81,43 +81,86 @@ class App extends HookConsumerWidget {
             const Text("Fluxy"),
             Row(
               children: [
-                title == "Discover"
-                    ? const Icon(
-                        Icons.category,
-                        color: Colors.lime,
-                      )
-                    : const Icon(
-                        Icons.label_important,
-                        color: Colors.blue,
-                      ),
-                const SizedBox(width: 10),
-                Text(title),
+                SizedBox(
+                    width: 200,
+                    child: Text(
+                      ht.title,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    )),
+                const SizedBox(width: 5),
+                ht.icon,
               ],
             ),
           ],
         ),
       ),
       bottomNavigationBar: BottomAppBar(
+        padding: EdgeInsets.zero,
+        height: 50,
+        color: Colors.black,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            IconButton(
-                icon: const Icon(Icons.home),
+            RawMaterialButton(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Icon(
+                  Icons.home,
+                  color: body is Home ? Colors.yellow : null,
+                ),
                 onPressed: () {
+                  ref.read(headerTitleProvider.notifier).update((_) =>
+                      HeaderTitle(
+                          "Discover",
+                          const Icon(Icons.category,
+                              color: Colors.yellow, size: 15)));
                   ref
                       .read(bodyProvider.notifier)
                       .update((state) => const Home());
                 }),
-            IconButton(
-                icon: const Icon(Icons.list),
+            RawMaterialButton(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Icon(Icons.rss_feed,
+                    color: body is Feeds ? Colors.green : null),
                 onPressed: () {
+                  ref
+                      .read(headerTitleProvider.notifier)
+                      .update((_) => HeaderTitle(
+                          "Feeds",
+                          const Icon(
+                            Icons.rss_feed,
+                            color: Colors.green,
+                            size: 15,
+                          )));
                   ref
                       .read(bodyProvider.notifier)
                       .update((state) => const Feeds());
+
+                  ref.read(subPageSwitchProvider.notifier).update((s) => !s);
                 }),
-            IconButton(
-                icon: const Icon(Icons.settings),
+            RawMaterialButton(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Icon(Icons.settings,
+                    color: body is Settings ? Colors.blue : null),
                 onPressed: () {
+                  ref.read(headerTitleProvider.notifier).update((_) =>
+                      HeaderTitle(
+                          "Settings",
+                          const Icon(Icons.settings,
+                              color: Colors.blue, size: 15)));
                   ref
                       .read(bodyProvider.notifier)
                       .update((state) => const Settings());

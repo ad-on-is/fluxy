@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:fluxy/data/entities.dart';
 import 'package:fluxy/data/miniflux.dart';
 import 'package:fpdart/fpdart.dart';
@@ -43,7 +44,6 @@ class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
       final data = await fetch();
       return [...state.asData!.value, ...data];
     });
-    print("Loaded more $arg $page");
   }
 
   void filterRead() {
@@ -96,8 +96,15 @@ final scrollToTopProvider = StateProvider<bool>((ref) {
   return false;
 });
 
-final categoryTitleProvider = StateProvider<String>((ref) {
-  return "Discover";
+class HeaderTitle {
+  final String title;
+  final Widget icon;
+  HeaderTitle(this.title, this.icon);
+}
+
+final headerTitleProvider = StateProvider<HeaderTitle>((ref) {
+  return HeaderTitle(
+      "Discover", const Icon(Icons.category, color: Colors.yellow, size: 15));
 });
 
 final feedIconProvider =
@@ -114,3 +121,7 @@ final feedsProvider = FutureProvider<List<Feed>>((ref) async {
 
 final seenProvider = NotifierProvider<SeenNotifier, Map<String, List<int>>>(
     () => SeenNotifier());
+
+final subPageSwitchProvider = StateProvider<bool>((ref) {
+  return false;
+});
