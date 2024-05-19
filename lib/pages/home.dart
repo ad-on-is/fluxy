@@ -19,7 +19,7 @@ class Home extends HookConsumerWidget {
     pageController.addListener(() {
       final pp = pageController.page!.round();
       if (pp != page.value) {
-        ref.read(seenProvider.notifier).markScrolledAsRead();
+        ref.read(seenProvider.notifier).markSeenAsRead();
       }
       page.value = pp;
       if (categories.isNotEmpty) {
@@ -31,7 +31,8 @@ class Home extends HookConsumerWidget {
 
     return PageView(
         controller: pageController,
-        children:
-            categories.map((e) => CategoryEntryList(category: e.id)).toList());
+        children: categories
+            .map((e) => EntryList(sourceId: e.id, sourceType: "category"))
+            .toList());
   }
 }

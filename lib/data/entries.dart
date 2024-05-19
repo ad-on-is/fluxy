@@ -3,20 +3,38 @@ import 'package:fluxy/data/miniflux.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:riverpod/riverpod.dart';
 
-class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, int> {
+class EntrySource {
+  final int id;
+  final String type;
+
+  EntrySource(this.id, this.type);
+}
+
+class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
   int page = 0;
 
   Future<List<FeedEntry>> fetch() async {
-    // ref.read(minifluxProvider).feedEntries(feed, 0);
-    if (arg == 0) {
-      return await ref.read(minifluxProvider).discoveryEntries();
+    final s = getSource();
+    if (s.type == "category") {
+      if (s.id == 0) {
+        return await ref.read(minifluxProvider).discoveryEntries(2, page);
+      }
+      return await ref
+          .read(minifluxProvider)
+          .categoryEntries(getSource().id, 20, page);
+    } else {
+      return await ref.read(minifluxProvider).feedEntries(s.id, 20, page);
     }
-    return await ref.read(minifluxProvider).categoryEntries(arg, page);
   }
 
   @override
   Future<List<FeedEntry>> build(arg) {
     return fetch();
+  }
+
+  EntrySource getSource() {
+    final s = arg.split(":");
+    return EntrySource(int.parse(s[1]), s[0]);
   }
 
   void loadMore() async {
@@ -25,6 +43,7 @@ class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, int> {
       final data = await fetch();
       return [...state.asData!.value, ...data];
     });
+    print("Loaded more $arg $page");
   }
 
   void filterRead() {
@@ -47,9 +66,10 @@ class SeenNotifier extends Notifier<Map<String, List<int>>> {
     }
 
     state = ns;
+    ref.read(minifluxProvider).markAsRead(ns["seen"]!);
   }
 
-  void markScrolledAsRead() {
+  void markSeenAsRead() {
     final ns = state;
     ns["read"] = [...ns["read"]!, ...ns["seen"]!];
     ns["seen"]!.clear();
@@ -60,8 +80,8 @@ class SeenNotifier extends Notifier<Map<String, List<int>>> {
   List<int> get read => state["read"]!;
 }
 
-final categoryEntries =
-    AsyncNotifierProviderFamily<EntriesNotifier, List<FeedEntry>, int>(
+final entriesProvider =
+    AsyncNotifierProviderFamily<EntriesNotifier, List<FeedEntry>, String>(
         () => EntriesNotifier());
 
 final categoriesProvider = FutureProvider<List<FeedCategory>>((ref) async {
@@ -72,8 +92,7 @@ final categoriesProvider = FutureProvider<List<FeedCategory>>((ref) async {
   return categories;
 });
 
-final categoryShouldScrollToTop =
-    StateProvider.family<bool, int>((ref, category) {
+final scrollToTopProvider = StateProvider<bool>((ref) {
   return false;
 });
 

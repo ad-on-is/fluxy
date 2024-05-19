@@ -6,29 +6,29 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:fluxy/data/entities.dart';
 import 'package:fluxy/data/entries.dart';
-import 'package:fluxy/data/miniflux.dart';
 import 'package:fluxy/helpers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-class CategoryEntryList extends HookConsumerWidget {
-  final int category;
-  const CategoryEntryList({super.key, required this.category});
+class EntryList extends HookConsumerWidget {
+  final String sourceType;
+  final int sourceId;
+  const EntryList(
+      {super.key, required this.sourceId, required this.sourceType});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = [];
-    final shouldScroll = ref.read(categoryShouldScrollToTop(category));
     final controller = useScrollController();
 
-    ref.watch(categoryEntries(category)).whenData((value) {
+    ref.watch(entriesProvider("$sourceType:$sourceId")).whenData((value) {
       entries.addAll(value);
     });
 
-    if (shouldScroll && controller.hasClients) {
-      // controller.jumpTo(0);
+    if (ref.read(scrollToTopProvider) && controller.hasClients) {
+      controller.jumpTo(0);
     }
 
     return MasonryGridView.count(
@@ -38,17 +38,19 @@ class CategoryEntryList extends HookConsumerWidget {
         itemBuilder: (ctx, index) => EntryCard(
               entry: entries[index],
               onLaunched: (int id) {
-                // ref
-                //     .read(categoryShouldScrollToTop(category).notifier)
-                //     .update((s) => true);
-                ref.read(seenProvider.notifier).markScrolledAsRead();
-                ref.read(categoryEntries(category).notifier).filterRead();
+                ref.read(scrollToTopProvider.notifier).update((s) => true);
+                ref.read(seenProvider.notifier).markSeenAsRead();
+                ref
+                    .read(entriesProvider("$sourceType:$sourceId").notifier)
+                    .filterRead();
               },
               onSeen: (int id) {
                 ref.read(seenProvider.notifier).markAsSeen(id);
                 final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
                 if (entries[idx].id == id) {
-                  ref.read(categoryEntries(category).notifier).loadMore();
+                  ref
+                      .read(entriesProvider("$sourceType:$sourceId").notifier)
+                      .loadMore();
                 }
               },
             ));

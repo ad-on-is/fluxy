@@ -4,7 +4,6 @@ import 'package:fluxy/data/entries.dart';
 import 'package:fluxy/data/storage.dart';
 import 'package:fluxy/pages/feeds.dart';
 import 'package:fluxy/pages/home.dart';
-import 'package:fluxy/data/miniflux.dart';
 import 'package:fluxy/ui/login_form.dart';
 import 'package:fluxy/pages/settings.dart';
 import 'package:hive_flutter/adapters.dart';
