@@ -51,6 +51,13 @@ class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
     });
   }
 
+  Future<void> pullToRefresh() async {
+    page = 0;
+    state = await AsyncValue.guard(() async {
+      return await fetch();
+    });
+  }
+
   void filterRead() {
     if (!hideReadNews) {
       return;

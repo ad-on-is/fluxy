@@ -31,29 +31,36 @@ class EntryList extends HookConsumerWidget {
       controller.jumpTo(0);
     }
 
-    return MasonryGridView.count(
-        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
-        itemCount: entries.length,
-        controller: controller,
-        itemBuilder: (ctx, index) => EntryCard(
-              entry: entries[index],
-              onLaunched: (int id) {
-                ref.read(scrollToTopProvider.notifier).update((s) => true);
-                ref.read(seenProvider.notifier).markSeenAsRead();
-                ref
-                    .read(entriesProvider("$sourceType:$sourceId").notifier)
-                    .filterRead();
-              },
-              onSeen: (int id) {
-                ref.read(seenProvider.notifier).markAsSeen(id);
-                final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
-                if (entries[idx].id == id) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref
+            .read(entriesProvider("$sourceType:$sourceId").notifier)
+            .pullToRefresh();
+      },
+      child: MasonryGridView.count(
+          crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
+          itemCount: entries.length,
+          controller: controller,
+          itemBuilder: (ctx, index) => EntryCard(
+                entry: entries[index],
+                onLaunched: (int id) {
+                  ref.read(scrollToTopProvider.notifier).update((s) => true);
+                  ref.read(seenProvider.notifier).markSeenAsRead();
                   ref
                       .read(entriesProvider("$sourceType:$sourceId").notifier)
-                      .loadMore();
-                }
-              },
-            ));
+                      .filterRead();
+                },
+                onSeen: (int id) {
+                  ref.read(seenProvider.notifier).markAsSeen(id);
+                  final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
+                  if (entries[idx].id == id) {
+                    ref
+                        .read(entriesProvider("$sourceType:$sourceId").notifier)
+                        .loadMore();
+                  }
+                },
+              )),
+    );
   }
 }
 
