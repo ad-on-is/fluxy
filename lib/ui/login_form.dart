@@ -18,14 +18,50 @@ class LoginForm extends HookConsumerWidget {
       passController.text = value.pass;
     });
     return Column(children: [
-      TextField(
-        controller: urlController,
+      Row(
+        children: [
+          const Icon(
+            Icons.link,
+            size: 20,
+            color: Colors.blue,
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: TextField(
+              controller: urlController,
+            ),
+          )
+        ],
       ),
-      TextField(
-        controller: userController,
+      Row(
+        children: [
+          const Icon(
+            Icons.person,
+            size: 20,
+            color: Colors.blue,
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: TextField(
+              controller: userController,
+            ),
+          )
+        ],
       ),
-      TextField(
-        controller: passController,
+      Row(
+        children: [
+          const Icon(
+            Icons.key,
+            size: 20,
+            color: Colors.blue,
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: TextField(
+              controller: passController,
+            ),
+          )
+        ],
       ),
       ElevatedButton(
           onPressed: () async {

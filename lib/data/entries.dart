@@ -125,3 +125,11 @@ final seenProvider = NotifierProvider<SeenNotifier, Map<String, List<int>>>(
 final subPageSwitchProvider = StateProvider<bool>((ref) {
   return false;
 });
+
+final userProvider = FutureProvider<User>((ref) async {
+  return await ref.read(minifluxProvider).me();
+});
+
+final versionProvider = FutureProvider<Version>((ref) async {
+  return await ref.read(minifluxProvider).version();
+});

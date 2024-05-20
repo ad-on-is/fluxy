@@ -21,9 +21,15 @@ class Miniflux {
         });
   }
 
-  Future<dynamic>? me() async {
-    final response = await fetch(() => _client.get('/me'));
-    return response.match((l) => l, (r) => null);
+  Future<User> me() async {
+    final response = await fetch(() => _client.get('/mex'));
+    return response.match((l) => User(0, "UNKNOWN"), (r) => User.fromJson(r));
+  }
+
+  Future<Version> version() async {
+    final response = await fetch(() => _client.get('/version'));
+    return response.match(
+        (l) => Version("Version", "UNKNOWN"), (r) => Version.fromJson(r));
   }
 
   Future<Either<Exception, dynamic>> fetch(

@@ -98,7 +98,7 @@ class App extends HookConsumerWidget {
       ),
       bottomNavigationBar: BottomAppBar(
         padding: EdgeInsets.zero,
-        height: 50,
+        height: 60,
         color: Colors.black,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,

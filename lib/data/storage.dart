@@ -16,6 +16,35 @@ showSnackBar(String text, {Color color = Colors.black}) {
   }
 }
 
+class Config {
+  final bool markAsReadOnScroll;
+
+  Config(this.markAsReadOnScroll);
+}
+
+class ConfigNotifier extends AsyncNotifier<Config> {
+  @override
+  Future<Config> build() async {
+    return await getConfig();
+  }
+
+  Future<Config> getConfig() async {
+    final box = await ref.read(hiveConfig);
+    final config = Config(
+      await box.get("markAsReadOnScroll") ?? true,
+    );
+    state = AsyncValue.data(config);
+
+    return config;
+  }
+
+  Future<void> saveConfig(Config config) async {
+    final box = await ref.read(hiveConfig);
+    await box.put("markAsReadOnScroll", config.markAsReadOnScroll);
+    state = AsyncValue.data(config);
+  }
+}
+
 class Credentials {
   final String url;
   final String user;
@@ -50,7 +79,7 @@ class CredentialsNotifier extends AsyncNotifier<Credentials> {
 
   Future<void> saveCredentials(Credentials creds) async {
     if (await checkCredentials(creds)) {
-      final box = await ref.read(hiveProvider);
+      final box = await ref.read(hiveCreds);
       await box.put("url", creds.url);
       await box.put("user", creds.user);
       await box.put("pass", creds.pass);
@@ -63,7 +92,7 @@ class CredentialsNotifier extends AsyncNotifier<Credentials> {
   }
 
   Future<Credentials> getCredentials() async {
-    final box = await ref.read(hiveProvider);
+    final box = await ref.read(hiveCreds);
     final creds = Credentials(await box.get("url") ?? "",
         await box.get("user") ?? "", await box.get("pass") ?? "");
     state = AsyncValue.data(creds);
@@ -72,7 +101,11 @@ class CredentialsNotifier extends AsyncNotifier<Credentials> {
   }
 }
 
-final hiveProvider = Provider((ref) => Hive.openLazyBox("fluxy"));
+final hiveCreds = Provider((ref) => Hive.openLazyBox("fluxy"));
+final hiveConfig = Provider((ref) => Hive.openLazyBox("fluxy-config"));
 final credentialsProvider =
     AsyncNotifierProvider<CredentialsNotifier, Credentials>(
         () => CredentialsNotifier());
+
+final configProvider =
+    AsyncNotifierProvider<ConfigNotifier, Config>(() => ConfigNotifier());

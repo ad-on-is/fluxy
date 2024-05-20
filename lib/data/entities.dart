@@ -3,6 +3,28 @@ class FeedIcon {
   FeedIcon.fromJson(Map<String, dynamic> json) : iconId = json['icon_id'];
 }
 
+class User {
+  final int id;
+  final String username;
+
+  User(this.id, this.username);
+
+  User.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        username = json['username'];
+}
+
+class Version {
+  final String version;
+  final String buildDate;
+
+  Version(this.version, this.buildDate);
+
+  Version.fromJson(Map<String, dynamic> json)
+      : version = json['version'],
+        buildDate = json['build_date'];
+}
+
 class Feed {
   final String title;
   final int id;
