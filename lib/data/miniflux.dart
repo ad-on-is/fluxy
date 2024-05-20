@@ -10,10 +10,12 @@ import 'package:riverpod/riverpod.dart';
 class Miniflux {
   final Dio _client = Dio();
   final Ref ref;
+  bool fetchRead = false;
   final markedAsRead = [];
 
   Miniflux(this.ref) {
     _client.options.headers['Content-Type'] = 'application/json';
+    ref.watch(configProvider).whenData((v) => fetchRead = v.fetchReadNews);
     ref.watch(credentialsProvider).whenData((creds) => {
           _client.options.baseUrl = '${creds.url}/v1',
           if (creds.useKey)
@@ -81,14 +83,14 @@ class Miniflux {
     if (seen.isEmpty) {
       return;
     }
-    // final res = await fetch(() =>
-    //     _client.put('/entries', data: {"entry_ids": seen, "status": "read"}));
+    final res = await fetch(() =>
+        _client.put('/entries', data: {"entry_ids": seen, "status": "read"}));
 
-    // if (res.isLeft()) {
-    //   showSnackBar(res.getLeft().toString(), color: Colors.yellow);
-    // } else {
-    //   markedAsRead.addAll(seen);
-    // }
+    if (res.isLeft()) {
+      showSnackBar(res.getLeft().toString(), color: Colors.yellow);
+    } else {
+      markedAsRead.addAll(seen);
+    }
   }
 
   Future<List<Feed>> feeds() async {
@@ -117,8 +119,10 @@ class Miniflux {
 
   Future<List<FeedEntry>> categoryEntries(
       int category, int limit, int offset) async {
+    final filter = !fetchRead ? "status=unread" : "status=unread&status=read";
+
     return (await fetch(() => _client.get(
-            '/categories/$category/entries?limit=$limit&offset=${offset * limit}&order=published_at&direction=desc')))
+            '/categories/$category/entries?limit=$limit&offset=${offset * limit}&order=published_at&direction=desc&$filter')))
         .match((l) {
       showSnackBar(l.toString(), color: Colors.yellow);
       return List<FeedEntry>.empty();
@@ -129,8 +133,9 @@ class Miniflux {
   }
 
   Future<List<FeedEntry>> feedEntries(int feed, int limit, int offset) async {
+    final filter = !fetchRead ? "status=unread" : "status=unread&status=read";
     return (await fetch(() => _client.get(
-            '/feeds/$feed/entries?limit=$limit&offset=${offset * limit}&order=published_at&direction=desc')))
+            '/feeds/$feed/entries?limit=$limit&offset=${offset * limit}&order=published_at&direction=desc&$filter')))
         .match((l) {
       showSnackBar(l.toString(), color: Colors.yellow);
       return List<FeedEntry>.empty();

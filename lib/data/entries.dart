@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxy/data/entities.dart';
 import 'package:fluxy/data/miniflux.dart';
+import 'package:fluxy/data/storage.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:riverpod/riverpod.dart';
 
@@ -13,6 +14,7 @@ class EntrySource {
 
 class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
   int page = 0;
+  bool hideReadNews = true;
 
   Future<List<FeedEntry>> fetch() async {
     final s = getSource();
@@ -30,6 +32,9 @@ class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
 
   @override
   Future<List<FeedEntry>> build(arg) {
+    ref.watch(configProvider).whenData((config) {
+      hideReadNews = config.hideReadNews;
+    });
     return fetch();
   }
 
@@ -47,6 +52,9 @@ class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
   }
 
   void filterRead() {
+    if (!hideReadNews) {
+      return;
+    }
     state = AsyncValue.data(state.asData!.value
         .filter((e) => !ref.read(seenProvider.notifier).read.contains(e.id))
         .toList());
@@ -54,8 +62,12 @@ class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
 }
 
 class SeenNotifier extends Notifier<Map<String, List<int>>> {
+  bool markAsRead = false;
   @override
   Map<String, List<int>> build() {
+    ref.watch(configProvider).whenData((config) {
+      markAsRead = config.markAsReadOnScroll;
+    });
     return {"seen": [], "read": []};
   }
 
@@ -66,7 +78,9 @@ class SeenNotifier extends Notifier<Map<String, List<int>>> {
     }
 
     state = ns;
-    ref.read(minifluxProvider).markAsRead(ns["seen"]!);
+    if (markAsRead) {
+      ref.read(minifluxProvider).markAsRead(ns["seen"]!);
+    }
   }
 
   void markSeenAsRead() {
