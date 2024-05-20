@@ -126,10 +126,10 @@ final subPageSwitchProvider = StateProvider<bool>((ref) {
   return false;
 });
 
-final userProvider = FutureProvider<User>((ref) async {
+final userProvider = FutureProvider.autoDispose<User>((ref) async {
   return await ref.read(minifluxProvider).me();
 });
 
-final versionProvider = FutureProvider<Version>((ref) async {
+final versionProvider = FutureProvider.autoDispose<Version>((ref) async {
   return await ref.read(minifluxProvider).version();
 });

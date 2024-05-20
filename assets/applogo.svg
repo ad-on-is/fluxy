@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="70.099998mm"
+   height="85.099991mm"
+   viewBox="0 0 70.099998 85.099991"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-166.6875,-38.099999)">
+    <path
+       id="rect1"
+       style="vector-effect:none;fill:#fe840b;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.2;stop-color:#000000"
+       d="m 110,45.000004 55,0 V 50 A 15.000004,15.000004 135 0 1 150,65.000004 H 95 v -5.000003 a 14.999997,14.999997 135 0 1 15,-14.999997 z"
+       transform="translate(71.787499,-6.900005)" />
+    <path
+       id="rect2"
+       style="vector-effect:none;fill:#f3b209;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.2;stop-color:#000000"
+       d="m 125,75 h 25 v 9.999996 A 10.000004,10.000004 135 0 1 140,95 H 115 V 84.999996 A 9.9999965,9.9999965 135 0 1 125,75 Z"
+       transform="translate(71.787499,-11.900003)" />
+    <path
+       id="rect2-2"
+       style="vector-effect:none;fill:#e64553;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.2;stop-color:#000000"
+       d="m 125,75 h 25 v 9.999996 A 10.000004,10.000004 135 0 1 140,95 H 115 V 84.999996 A 9.9999965,9.9999965 135 0 1 125,75 Z"
+       transform="matrix(0,-1,-1,0,261.6875,238.19999)" />
+  </g>
+</svg>

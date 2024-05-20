@@ -14,15 +14,48 @@ class Miniflux {
 
   Miniflux(this.ref) {
     _client.options.headers['Content-Type'] = 'application/json';
-    ref.watch(credentialsProvider).whenData((value) => {
-          _client.options.baseUrl = '${value.url}/v1',
-          _client.options.headers['Authorization'] =
-              'Basic ${base64.encode(utf8.encode("${value.user}:${value.pass}"))}',
+    ref.watch(credentialsProvider).whenData((creds) => {
+          _client.options.baseUrl = '${creds.url}/v1',
+          if (creds.useKey)
+            {_client.options.headers['X-Auth-Token'] = creds.key}
+          else
+            {
+              _client.options.headers['Authorization'] =
+                  'Basic ${base64.encode(utf8.encode("${creds.user}:${creds.pass}"))}'
+            }
         });
   }
 
+  static Future<bool> checkCredentials(Credentials creds,
+      {bool showSnack = false}) async {
+    final dio = Dio();
+    try {
+      dio.options.baseUrl = '${creds.url}/v1';
+      if (creds.useKey) {
+        dio.options.headers['X-Auth-Token'] = creds.key;
+      } else {
+        dio.options.headers['Authorization'] =
+            'Basic ${base64.encode(utf8.encode("${creds.user}:${creds.pass}"))}';
+      }
+
+      final res = await dio.get("/me");
+      if (res.statusCode! < 300) {
+        if (showSnack) {
+          showSnackBar("Credentials valid", color: Colors.green);
+        }
+        return true;
+      }
+    } catch (e) {
+      showSnackBar("Error connecting to ${creds.url}", color: Colors.red);
+      return false;
+      // print("ERROR with creds");
+    }
+    showSnackBar("Invalid credentials", color: Colors.orange);
+    return false;
+  }
+
   Future<User> me() async {
-    final response = await fetch(() => _client.get('/mex'));
+    final response = await fetch(() => _client.get('/me'));
     return response.match((l) => User(0, "UNKNOWN"), (r) => User.fromJson(r));
   }
 

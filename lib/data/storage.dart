@@ -1,7 +1,5 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxy/data/miniflux.dart';
 import 'package:hive/hive.dart';
 import 'package:riverpod/riverpod.dart';
 
@@ -18,8 +16,9 @@ showSnackBar(String text, {Color color = Colors.black}) {
 
 class Config {
   final bool markAsReadOnScroll;
-
-  Config(this.markAsReadOnScroll);
+  final bool fetchReadNews;
+  final bool hideReadNews;
+  Config(this.markAsReadOnScroll, this.fetchReadNews, this.hideReadNews);
 }
 
 class ConfigNotifier extends AsyncNotifier<Config> {
@@ -32,6 +31,8 @@ class ConfigNotifier extends AsyncNotifier<Config> {
     final box = await ref.read(hiveConfig);
     final config = Config(
       await box.get("markAsReadOnScroll") ?? true,
+      await box.get("fetchReadNews") ?? false,
+      await box.get("hideReadNews") ?? true,
     );
     state = AsyncValue.data(config);
 
@@ -41,6 +42,8 @@ class ConfigNotifier extends AsyncNotifier<Config> {
   Future<void> saveConfig(Config config) async {
     final box = await ref.read(hiveConfig);
     await box.put("markAsReadOnScroll", config.markAsReadOnScroll);
+    await box.put("fetchReadNews", config.fetchReadNews);
+    await box.put("hideReadNews", config.hideReadNews);
     state = AsyncValue.data(config);
   }
 }
@@ -49,7 +52,12 @@ class Credentials {
   final String url;
   final String user;
   final String pass;
-  Credentials(this.url, this.user, this.pass);
+  final String key;
+  final bool useKey;
+  bool valid;
+
+  Credentials(this.url, this.user, this.pass, this.key, this.useKey,
+      {this.valid = false});
 }
 
 class CredentialsNotifier extends AsyncNotifier<Credentials> {
@@ -58,50 +66,44 @@ class CredentialsNotifier extends AsyncNotifier<Credentials> {
     return await getCredentials();
   }
 
-  Future<bool> checkCredentials(Credentials creds) async {
-    final dio = Dio();
-    try {
-      dio.options.baseUrl = '${creds.url}/v1';
-      dio.options.headers['Authorization'] =
-          'Basic ${base64.encode(utf8.encode("${creds.user}:${creds.pass}"))}';
-      final res = await dio.get("/me");
-      if (res.statusCode! < 300) {
-        return true;
-      }
-    } catch (e) {
-      showSnackBar("Error connecting to ${creds.url}", color: Colors.red);
-      return false;
-      // print("ERROR with creds");
-    }
-    showSnackBar("Invalid credentials", color: Colors.orange);
-    return false;
-  }
-
   Future<void> saveCredentials(Credentials creds) async {
-    if (await checkCredentials(creds)) {
-      final box = await ref.read(hiveCreds);
-      await box.put("url", creds.url);
-      await box.put("user", creds.user);
-      await box.put("pass", creds.pass);
-      state = AsyncValue.data(creds);
+    creds.valid = await Miniflux.checkCredentials(creds, showSnack: true);
+    final box = await ref.read(hiveCreds);
+    if (!creds.valid) {
+      return;
     }
+    await box.put("url", creds.url);
+    await box.put("user", creds.user);
+    await box.put("pass", creds.pass);
+    await box.put("key", creds.key);
+    await box.put("useKey", creds.useKey);
+
+    state = AsyncValue.data(creds);
   }
 
   Future<void> clearCredentials() async {
-    state = AsyncValue.data(Credentials("", "", ""));
+    state = AsyncValue.data(Credentials("", "", "", "", false));
   }
 
   Future<Credentials> getCredentials() async {
     final box = await ref.read(hiveCreds);
-    final creds = Credentials(await box.get("url") ?? "",
-        await box.get("user") ?? "", await box.get("pass") ?? "");
-    state = AsyncValue.data(creds);
+    final creds = Credentials(
+      await box.get("url") ?? "",
+      await box.get("user") ?? "",
+      await box.get("pass") ?? "",
+      await box.get("key") ?? "",
+      await box.get("useKey") ?? false,
+    );
+    creds.valid = await Miniflux.checkCredentials(creds);
 
+    if (creds.valid) {
+      state = AsyncValue.data(creds);
+    }
     return creds;
   }
 }
 
-final hiveCreds = Provider((ref) => Hive.openLazyBox("fluxy"));
+final hiveCreds = Provider((ref) => Hive.openLazyBox("fluxy-creds"));
 final hiveConfig = Provider((ref) => Hive.openLazyBox("fluxy-config"));
 final credentialsProvider =
     AsyncNotifierProvider<CredentialsNotifier, Credentials>(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxy/data/entries.dart';
 import 'package:fluxy/data/storage.dart';
 import 'package:fluxy/pages/feeds.dart';
@@ -20,7 +21,7 @@ class Main extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    Credentials creds = Credentials("", "", "");
+    Credentials? creds;
     final loading = useState(true);
 
     ref.watch(credentialsProvider).whenData((value) {
@@ -32,7 +33,7 @@ class Main extends HookConsumerWidget {
       darkTheme: ThemeData.dark(),
       home: loading.value
           ? const Loading()
-          : creds.url == ""
+          : creds!.url == ""
               ? const Login()
               : const App(),
     );
@@ -46,7 +47,34 @@ class Login extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      body: const SafeArea(child: LoginForm()),
+      body: SafeArea(
+          child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset("assets/applogo.svg"),
+                const SizedBox(width: 10),
+                const Text("Fluxy", style: TextStyle(fontSize: 50)),
+              ],
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            Opacity(
+              opacity: 0.5,
+              child: Text("Enjoy your RSS feeds",
+                  style: Theme.of(context).textTheme.bodyLarge),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            const LoginForm(initial: true)
+          ],
+        ),
+      )),
     );
   }
 }
@@ -78,7 +106,17 @@ class App extends HookConsumerWidget {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text("Fluxy"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  "assets/applogo.svg",
+                  height: 40,
+                ),
+                const SizedBox(width: 10),
+                const Text("Fluxy", style: TextStyle(fontSize: 30)),
+              ],
+            ),
             Row(
               children: [
                 SizedBox(

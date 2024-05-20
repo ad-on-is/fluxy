@@ -4,71 +4,115 @@ import 'package:fluxy/data/storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class LoginForm extends HookConsumerWidget {
-  const LoginForm({super.key});
+  final bool initial;
+  const LoginForm({super.key, this.initial = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final urlController = useTextEditingController();
     final userController = useTextEditingController();
     final passController = useTextEditingController();
-    final creds = ref.watch(credentialsProvider);
-    creds.whenData((value) {
-      urlController.text = value.url;
-      userController.text = value.user;
-      passController.text = value.pass;
+    final keyController = useTextEditingController();
+    final init = useState(false);
+    final useKey = useState(false);
+    ref.watch(credentialsProvider).whenData((creds) {
+      urlController.text = creds.url;
+      userController.text = creds.user;
+      passController.text = creds.pass;
+      keyController.text = creds.key;
+      if (!init.value) {
+        useKey.value = creds.useKey;
+        init.value = true;
+      }
     });
-    return Column(children: [
-      Row(
-        children: [
-          const Icon(
-            Icons.link,
-            size: 20,
-            color: Colors.blue,
-          ),
-          const SizedBox(width: 10),
-          Flexible(
-            child: TextField(
-              controller: urlController,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+      child: Column(children: [
+        TextField(
+            controller: urlController,
+            decoration: const InputDecoration(
+              labelText: "URL",
+              icon: Icon(
+                Icons.link,
+                color: Colors.orange,
+                size: 20,
+              ),
+              hintText: "https://miniflux.example.com",
+            )),
+        const SizedBox(height: 15),
+        TextField(
+            controller: userController,
+            decoration: const InputDecoration(
+              icon: Icon(
+                Icons.person,
+                size: 20,
+                color: Colors.blue,
+              ),
+              labelText: "Username",
+              hintText: "Username",
+            )),
+        const SizedBox(height: 15),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Use API Key", style: Theme.of(context).textTheme.bodyLarge),
+            Switch(
+              value: useKey.value,
+              onChanged: (v) => useKey.value = v,
             ),
-          )
-        ],
-      ),
-      Row(
-        children: [
-          const Icon(
-            Icons.person,
-            size: 20,
-            color: Colors.blue,
-          ),
-          const SizedBox(width: 10),
-          Flexible(
-            child: TextField(
-              controller: userController,
-            ),
-          )
-        ],
-      ),
-      Row(
-        children: [
-          const Icon(
-            Icons.key,
-            size: 20,
-            color: Colors.blue,
-          ),
-          const SizedBox(width: 10),
-          Flexible(
-            child: TextField(
-              controller: passController,
-            ),
-          )
-        ],
-      ),
-      ElevatedButton(
-          onPressed: () async {
-            ref.read(credentialsProvider.notifier).saveCredentials(Credentials(
-                urlController.text, userController.text, passController.text));
-          },
-          child: const Text("Login"))
-    ]);
+          ],
+        ),
+        !useKey.value
+            ? TextField(
+                controller: passController,
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
+                decoration: const InputDecoration(
+                  icon: Icon(
+                    Icons.key,
+                    size: 20,
+                    color: Colors.blue,
+                  ),
+                  labelText: "Password",
+                  hintText: "Password",
+                ))
+            : TextField(
+                controller: keyController,
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
+                decoration: const InputDecoration(
+                  icon: Icon(
+                    Icons.key,
+                    size: 20,
+                    color: Colors.blue,
+                  ),
+                  labelText: "API Key",
+                  hintText: "API Key",
+                )),
+        const SizedBox(height: 15),
+        ElevatedButton(
+            onPressed: () async {
+              ref.read(credentialsProvider.notifier).saveCredentials(
+                  Credentials(urlController.text, userController.text,
+                      passController.text, keyController.text, useKey.value));
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                initial
+                    ? Text("Login",
+                        style: Theme.of(context).textTheme.bodyLarge)
+                    : Text("Save",
+                        style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(width: 10),
+                initial ? const Icon(Icons.login) : const Icon(Icons.save),
+              ],
+            ))
+      ]),
+    );
   }
 }

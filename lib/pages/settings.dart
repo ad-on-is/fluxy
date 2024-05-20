@@ -37,14 +37,18 @@ class Overview extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     User? user;
     Version? version;
-    Config config = Config(true);
     final markAsReadOnScroll = useState(true);
-    final showReadNews = useState(false);
+    final fetchReadNews = useState(false);
     final hideReadNews = useState(true);
+    final init = useState(false);
 
     ref.watch(configProvider).whenData((v) {
-      config = v;
-      markAsReadOnScroll.value = v.markAsReadOnScroll;
+      if (!init.value) {
+        markAsReadOnScroll.value = v.markAsReadOnScroll;
+        fetchReadNews.value = v.fetchReadNews;
+        hideReadNews.value = v.hideReadNews;
+        init.value = true;
+      }
     });
     ref.watch(userProvider).whenData((v) => user = v);
     ref.watch(versionProvider).whenData((v) => version = v);
@@ -81,15 +85,15 @@ class Overview extends HookConsumerWidget {
         ListTile(
           title: const Text("Fetch read news"),
           trailing: Switch(
-            value: showReadNews.value,
+            value: fetchReadNews.value,
             onChanged: (v) {
-              showReadNews.value = v;
+              fetchReadNews.value = v;
             },
           ),
-          onTap: () => showReadNews.value = !showReadNews.value,
+          onTap: () => fetchReadNews.value = !fetchReadNews.value,
         ),
         ListTile(
-          title: const Text("Hide read news automatically"),
+          title: const Text("Auto-hide read news from UI"),
           trailing: Switch(
             value: hideReadNews.value,
             onChanged: (v) {
@@ -98,6 +102,22 @@ class Overview extends HookConsumerWidget {
           ),
           onTap: () => hideReadNews.value = !hideReadNews.value,
         ),
+        ElevatedButton(
+            onPressed: () {
+              ref.read(configProvider.notifier).saveConfig(Config(
+                  markAsReadOnScroll.value,
+                  fetchReadNews.value,
+                  hideReadNews.value));
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Save", style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(width: 10),
+                const Icon(Icons.save),
+              ],
+            ))
       ],
     );
   }
