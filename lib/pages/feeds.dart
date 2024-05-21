@@ -14,7 +14,7 @@ class Feeds extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final feeds = [];
     final pageController = usePageController();
-
+    final refresh = useState(false);
     ref.watch(feedsProvider).whenData((value) {
       feeds.addAll(value);
     });
@@ -56,26 +56,31 @@ class Feeds extends HookConsumerWidget {
                     );
             })));
     });
-    return PageView(
-      controller: pageController,
-      children: [
-        ListView.builder(
-            itemCount: feeds.length,
-            itemBuilder: (ctx, index) => FeedListEntry(
-                  feeds[index],
-                  onTap: (feed) {
-                    pageController.animateTo(
-                        MediaQuery.of(context).size.width * (index + 1),
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOutCubicEmphasized);
-                  },
-                )),
-        for (var feed in feeds)
-          FeedDetail(
-            feed,
-            key: ValueKey(feed.id),
-          )
-      ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        refresh.value = !refresh.value;
+      },
+      child: PageView(
+        controller: pageController,
+        children: [
+          ListView.builder(
+              itemCount: feeds.length,
+              itemBuilder: (ctx, index) => FeedListEntry(
+                    feeds[index],
+                    onTap: (feed) {
+                      pageController.animateTo(
+                          MediaQuery.of(context).size.width * (index + 1),
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOutCubicEmphasized);
+                    },
+                  )),
+          for (var feed in feeds)
+            FeedDetail(
+              feed,
+              key: ValueKey(feed.id),
+            )
+        ],
+      ),
     );
   }
 }

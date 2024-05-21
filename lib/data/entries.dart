@@ -136,7 +136,7 @@ final feedIconProvider =
   return await ref.read(minifluxProvider).feedIcon(feedIcon.iconId);
 });
 
-final feedsProvider = FutureProvider<List<Feed>>((ref) async {
+final feedsProvider = FutureProvider.autoDispose<List<Feed>>((ref) async {
   return await ref.read(minifluxProvider).feeds();
 });
 
