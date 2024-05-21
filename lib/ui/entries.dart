@@ -136,7 +136,7 @@ class EntryCard extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(entry.id.toString(),
+                    Text(entry.title,
                         style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: 15),
                     Row(
