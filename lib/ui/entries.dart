@@ -50,7 +50,8 @@ class EntryList extends HookConsumerWidget {
                       .read(entriesProvider("$sourceType:$sourceId").notifier)
                       .filterRead();
                 },
-                onSeen: (int id) {
+                onOffScreen: (int id) {
+                  ref.read(scrollToTopProvider.notifier).update((s) => false);
                   ref.read(seenProvider.notifier).markAsSeen(id);
                   final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
                   if (entries[idx].id == id) {
@@ -59,6 +60,7 @@ class EntryList extends HookConsumerWidget {
                         .loadMore();
                   }
                 },
+                onSeen: (int id) {},
               )),
     );
   }
@@ -67,9 +69,14 @@ class EntryList extends HookConsumerWidget {
 class EntryCard extends HookConsumerWidget {
   final FeedEntry entry;
   final Function? onSeen;
+  final Function? onOffScreen;
   final Function? onLaunched;
   const EntryCard(
-      {super.key, required this.entry, this.onSeen, this.onLaunched});
+      {super.key,
+      required this.entry,
+      this.onSeen,
+      this.onLaunched,
+      this.onOffScreen});
 
   Future<void> _launchUrl(String url, WidgetRef ref) async {
     final uri = Uri.parse(url);
@@ -92,8 +99,16 @@ class EntryCard extends HookConsumerWidget {
       key: Key(entry.id.toString()),
       onVisibilityChanged: (info) {
         if (info.visibleFraction == 1.0) {
+          // was on screen
           if (onSeen != null) {
             onSeen!(entry.id);
+          }
+        } else {
+          if (info.visibleBounds.size.height < info.size.height * 0.7 &&
+              info.visibleBounds.top > 0) {
+            if (onOffScreen != null) {
+              onOffScreen!(entry.id);
+            }
           }
         }
       },
@@ -121,7 +136,7 @@ class EntryCard extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(entry.title,
+                    Text(entry.id.toString(),
                         style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: 15),
                     Row(
