@@ -40,13 +40,39 @@ class Overview extends HookConsumerWidget {
     final markAsReadOnScroll = useState(true);
     final fetchReadNews = useState(false);
     final hideReadNews = useState(true);
+    final infiniteScroll = useState(true);
     final init = useState(false);
+
+    saveSettings() {
+      ref.read(configProvider.notifier).saveConfig(Config(
+          markAsReadOnScroll.value,
+          fetchReadNews.value,
+          hideReadNews.value,
+          infiniteScroll.value));
+    }
+
+    markAsReadOnScroll.addListener(() {
+      saveSettings();
+    });
+
+    fetchReadNews.addListener(() {
+      saveSettings();
+    });
+
+    hideReadNews.addListener(() {
+      saveSettings();
+    });
+
+    infiniteScroll.addListener(() {
+      saveSettings();
+    });
 
     ref.watch(configProvider).whenData((v) {
       if (!init.value) {
         markAsReadOnScroll.value = v.markAsReadOnScroll;
         fetchReadNews.value = v.fetchReadNews;
         hideReadNews.value = v.hideReadNews;
+        infiniteScroll.value = v.infiniteScroll;
         init.value = true;
       }
     });
@@ -102,22 +128,16 @@ class Overview extends HookConsumerWidget {
           ),
           onTap: () => hideReadNews.value = !hideReadNews.value,
         ),
-        ElevatedButton(
-            onPressed: () {
-              ref.read(configProvider.notifier).saveConfig(Config(
-                  markAsReadOnScroll.value,
-                  fetchReadNews.value,
-                  hideReadNews.value));
+        ListTile(
+          title: const Text("Infinite scroll"),
+          trailing: Switch(
+            value: infiniteScroll.value,
+            onChanged: (v) {
+              infiniteScroll.value = v;
             },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Save", style: Theme.of(context).textTheme.bodyLarge),
-                const SizedBox(width: 10),
-                const Icon(Icons.save),
-              ],
-            ))
+          ),
+          onTap: () => infiniteScroll.value = !infiniteScroll.value,
+        ),
       ],
     );
   }

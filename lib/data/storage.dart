@@ -18,7 +18,9 @@ class Config {
   final bool markAsReadOnScroll;
   final bool fetchReadNews;
   final bool hideReadNews;
-  Config(this.markAsReadOnScroll, this.fetchReadNews, this.hideReadNews);
+  final bool infiniteScroll;
+  Config(this.markAsReadOnScroll, this.fetchReadNews, this.hideReadNews,
+      this.infiniteScroll);
 }
 
 class ConfigNotifier extends AsyncNotifier<Config> {
@@ -33,6 +35,7 @@ class ConfigNotifier extends AsyncNotifier<Config> {
       await box.get("markAsReadOnScroll") ?? true,
       await box.get("fetchReadNews") ?? false,
       await box.get("hideReadNews") ?? true,
+      await box.get("infiniteScroll") ?? true,
     );
     state = AsyncValue.data(config);
 
@@ -44,6 +47,7 @@ class ConfigNotifier extends AsyncNotifier<Config> {
     await box.put("markAsReadOnScroll", config.markAsReadOnScroll);
     await box.put("fetchReadNews", config.fetchReadNews);
     await box.put("hideReadNews", config.hideReadNews);
+    await box.put("infiniteScroll", config.infiniteScroll);
     state = AsyncValue.data(config);
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:fluxy/data/entities.dart';
 import 'package:fluxy/data/entries.dart';
+import 'package:fluxy/data/storage.dart';
 import 'package:fluxy/helpers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +23,8 @@ class EntryList extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = [];
     final controller = useScrollController();
-
+    Config? config;
+    ref.watch(configProvider).whenData((v) => config = v);
     ref.watch(entriesProvider("$sourceType:$sourceId")).whenData((value) {
       entries.addAll(value);
     });
@@ -31,38 +33,62 @@ class EntryList extends HookConsumerWidget {
       controller.jumpTo(0);
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        await ref
-            .read(entriesProvider("$sourceType:$sourceId").notifier)
-            .pullToRefresh();
-      },
-      child: MasonryGridView.count(
+    return CustomScrollView(slivers: [
+      SliverMasonryGrid(
+        gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
-          itemCount: entries.length,
-          controller: controller,
-          itemBuilder: (ctx, index) => EntryCard(
-                entry: entries[index],
-                onLaunched: (int id) {
-                  ref.read(scrollToTopProvider.notifier).update((s) => true);
-                  ref.read(seenProvider.notifier).markSeenAsRead();
-                  ref
-                      .read(entriesProvider("$sourceType:$sourceId").notifier)
-                      .filterRead();
-                },
-                onOffScreen: (int id) {
-                  ref.read(scrollToTopProvider.notifier).update((s) => false);
-                  ref.read(seenProvider.notifier).markAsSeen(id);
-                  final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
-                  if (entries[idx].id == id) {
-                    ref
-                        .read(entriesProvider("$sourceType:$sourceId").notifier)
-                        .loadMore();
-                  }
-                },
-                onSeen: (int id) {},
-              )),
-    );
+        ),
+        delegate: SliverChildBuilderDelegate(
+          childCount: entries.length,
+          (BuildContext context, int index) => EntryCard(
+            entry: entries[index],
+            onLaunched: (int id) {
+              ref.read(scrollToTopProvider.notifier).update((s) => true);
+              ref.read(seenProvider.notifier).markSeenAsRead();
+              ref
+                  .read(entriesProvider("$sourceType:$sourceId").notifier)
+                  .filterRead();
+            },
+            onOffScreen: (int id) {
+              ref.read(scrollToTopProvider.notifier).update((s) => false);
+              ref.read(seenProvider.notifier).markAsSeen(id);
+            },
+            onSeen: (int id) {
+              if (!config!.infiniteScroll) {
+                return;
+              }
+              final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
+              if (entries[idx].id == id) {
+                ref
+                    .read(entriesProvider("$sourceType:$sourceId").notifier)
+                    .loadMore();
+              }
+            },
+          ),
+        ),
+      ),
+      SliverList.list(children: [
+        Column(
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                ref
+                    .read(entriesProvider("$sourceType:$sourceId").notifier)
+                    .loadMore();
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.refresh),
+                  SizedBox(width: 5),
+                  Text("Load more")
+                ],
+              ),
+            ),
+          ],
+        )
+      ])
+    ]);
   }
 }
 
@@ -123,7 +149,7 @@ class EntryCard extends HookConsumerWidget {
               entry.getImage() != ""
                   ? CachedNetworkImage(
                       imageUrl: entry.getImage(),
-                      height: 300,
+                      width: double.infinity,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(height: 250),
                       // errorWidget: (context, url, error) => Icon(Icons.error),
