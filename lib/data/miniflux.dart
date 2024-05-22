@@ -79,7 +79,6 @@ class Miniflux {
   }
 
   void markAsRead(List<int> ids) async {
-    return;
     final seen = ids.filter((s) => !markedAsRead.contains(s)).toList();
     if (seen.isEmpty) {
       return;
