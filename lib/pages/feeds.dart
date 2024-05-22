@@ -104,16 +104,13 @@ class FeedListEntry extends HookConsumerWidget {
           feed.title,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Opacity(
-          opacity: 0.5,
-          child: Row(children: [
-            Text(
-              feed.category.title,
-            ),
-            const Text(" - "),
-            Text(feed.siteUrl, style: Theme.of(context).textTheme.bodySmall)
-          ]),
-        ),
+        subtitle: Row(children: [
+          Text(
+            "${feed.category.title} - ",
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          Text(feed.siteUrl, style: Theme.of(context).textTheme.bodySmall)
+        ]),
         trailing: const Icon(Icons.arrow_right),
         leading: icon != ""
             ? Image.memory(

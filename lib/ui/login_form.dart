@@ -34,7 +34,6 @@ class LoginForm extends HookConsumerWidget {
               labelText: "URL",
               icon: Icon(
                 Icons.link,
-                color: Colors.orange,
                 size: 20,
               ),
               hintText: "https://miniflux.example.com",
@@ -46,7 +45,6 @@ class LoginForm extends HookConsumerWidget {
               icon: Icon(
                 Icons.person,
                 size: 20,
-                color: Colors.blue,
               ),
               labelText: "Username",
               hintText: "Username",
@@ -73,7 +71,6 @@ class LoginForm extends HookConsumerWidget {
                   icon: Icon(
                     Icons.key,
                     size: 20,
-                    color: Colors.blue,
                   ),
                   labelText: "Password",
                   hintText: "Password",
@@ -87,7 +84,6 @@ class LoginForm extends HookConsumerWidget {
                   icon: Icon(
                     Icons.key,
                     size: 20,
-                    color: Colors.blue,
                   ),
                   labelText: "API Key",
                   hintText: "API Key",
@@ -103,11 +99,7 @@ class LoginForm extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                initial
-                    ? Text("Login",
-                        style: Theme.of(context).textTheme.bodyLarge)
-                    : Text("Save",
-                        style: Theme.of(context).textTheme.bodyLarge),
+                initial ? const Text("Login") : const Text("Save"),
                 const SizedBox(width: 10),
                 initial ? const Icon(Icons.login) : const Icon(Icons.save),
               ],

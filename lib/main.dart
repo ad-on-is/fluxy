@@ -7,6 +7,7 @@ import 'package:fluxy/pages/feeds.dart';
 import 'package:fluxy/pages/home.dart';
 import 'package:fluxy/ui/login_form.dart';
 import 'package:fluxy/pages/settings.dart';
+import 'package:fluxy/ui/theme.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -29,8 +30,8 @@ class Main extends HookConsumerWidget {
       creds = value;
     });
     return MaterialApp(
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
+      theme: dark,
+      darkTheme: dark,
       home: loading.value
           ? const Loading()
           : creds!.url == ""

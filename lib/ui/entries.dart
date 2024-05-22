@@ -183,21 +183,16 @@ class EntryCard extends HookConsumerWidget {
                                     color: Colors.blue.withAlpha(10),
                                   ),
                             const SizedBox(width: 5),
-                            Opacity(
-                                opacity: 0.6,
-                                child: Text(
-                                  Helpers.cutText(entry.feed.title, 30),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                )),
+                            Text(
+                              Helpers.cutText(entry.feed.title, 30),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ],
                         ),
-                        Opacity(
-                          opacity: 0.4,
-                          child: Text(
-                            DateFormat("EEE, d. MMM y")
-                                .format(entry.publishedAt.toLocal()),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
+                        Text(
+                          DateFormat("EEE, d. MMM y")
+                              .format(entry.publishedAt.toLocal()),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
