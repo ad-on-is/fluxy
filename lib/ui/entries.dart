@@ -33,62 +33,51 @@ class EntryList extends HookConsumerWidget {
       controller.jumpTo(0);
     }
 
-    return CustomScrollView(slivers: [
-      SliverMasonryGrid(
-        gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          childCount: entries.length,
-          (BuildContext context, int index) => EntryCard(
-            entry: entries[index],
-            onLaunched: (int id) {
-              ref.read(scrollToTopProvider.notifier).update((s) => true);
-              ref.read(seenProvider.notifier).markSeenAsRead();
-              ref
-                  .read(entriesProvider("$sourceType:$sourceId").notifier)
-                  .filterRead();
-            },
-            onOffScreen: (int id) {
-              ref.read(scrollToTopProvider.notifier).update((s) => false);
-              ref.read(seenProvider.notifier).markAsSeen(id);
-            },
-            onSeen: (int id) {
-              if (!config!.infiniteScroll) {
-                return;
-              }
-              final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
-              if (entries[idx].id == id) {
-                ref
-                    .read(entriesProvider("$sourceType:$sourceId").notifier)
-                    .loadMore();
-              }
-            },
-          ),
-        ),
+    controller.addListener(() {
+      if (!config!.infiniteScroll) {
+        ref
+            .read(listKeyProvider.notifier)
+            .update((s) => "$sourceType:$sourceId");
+        if (controller.position.pixels == controller.position.maxScrollExtent) {
+          ref.read(showLoadMoreProvider.notifier).update((s) => true);
+        } else {
+          ref.read(showLoadMoreProvider.notifier).update((s) => false);
+        }
+      }
+    });
+
+    return MasonryGridView.count(
+      itemCount: entries.length,
+      controller: controller,
+      addAutomaticKeepAlives: true,
+      semanticChildCount: entries.length,
+      crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
+      itemBuilder: (BuildContext context, int index) => EntryCard(
+        entry: entries[index],
+        onLaunched: (int id) {
+          ref.read(scrollToTopProvider.notifier).update((s) => true);
+          ref.read(seenProvider.notifier).markSeenAsRead();
+          ref
+              .read(entriesProvider("$sourceType:$sourceId").notifier)
+              .filterRead();
+        },
+        onOffScreen: (int id) {
+          ref.read(scrollToTopProvider.notifier).update((s) => false);
+          ref.read(seenProvider.notifier).markAsSeen(id);
+        },
+        onSeen: (int id) {
+          if (!config!.infiniteScroll) {
+            return;
+          }
+          final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
+          if (entries[idx].id == id) {
+            ref
+                .read(entriesProvider("$sourceType:$sourceId").notifier)
+                .loadMore();
+          }
+        },
       ),
-      SliverList.list(children: [
-        Column(
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                ref
-                    .read(entriesProvider("$sourceType:$sourceId").notifier)
-                    .loadMore();
-              },
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.refresh),
-                  SizedBox(width: 5),
-                  Text("Load more")
-                ],
-              ),
-            ),
-          ],
-        )
-      ])
-    ]);
+    );
   }
 }
 
@@ -119,6 +108,8 @@ class EntryCard extends HookConsumerWidget {
     ref
         .watch(feedIconProvider(entry.feed.icon))
         .whenData((value) => icon = value);
+
+    useAutomaticKeepAlive();
 
     VisibilityDetectorController.instance.updateInterval = Duration.zero;
     return VisibilityDetector(
@@ -154,9 +145,7 @@ class EntryCard extends HookConsumerWidget {
                       placeholder: (context, url) => Container(height: 250),
                       // errorWidget: (context, url, error) => Icon(Icons.error),
                     )
-                  : Container(
-                      color: Colors.blue,
-                    ),
+                  : const SizedBox(),
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Column(

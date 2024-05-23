@@ -35,6 +35,7 @@ class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
     ref.watch(configProvider).whenData((config) {
       hideReadNews = config.hideReadNews;
     });
+
     return fetch();
   }
 
@@ -154,3 +155,6 @@ final userProvider = FutureProvider.autoDispose<User>((ref) async {
 final versionProvider = FutureProvider.autoDispose<Version>((ref) async {
   return await ref.read(minifluxProvider).version();
 });
+
+final listKeyProvider = StateProvider<String>((ref) => "");
+final showLoadMoreProvider = StateProvider<bool>((ref) => false);

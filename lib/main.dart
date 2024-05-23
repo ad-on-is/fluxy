@@ -135,6 +135,21 @@ class App extends HookConsumerWidget {
           ],
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Consumer(
+        builder: (context, ref, child) {
+          final key = ref.read(listKeyProvider);
+          final show = ref.watch(showLoadMoreProvider);
+          return !show
+              ? const SizedBox()
+              : FloatingActionButton(
+                  onPressed: () {
+                    ref.read(entriesProvider(key).notifier).loadMore();
+                  },
+                  child: const Icon(Icons.refresh),
+                );
+        },
+      ),
       bottomNavigationBar: BottomAppBar(
         padding: EdgeInsets.zero,
         height: 60,
