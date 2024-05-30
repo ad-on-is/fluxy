@@ -52,7 +52,7 @@ class EntriesNotifier extends FamilyAsyncNotifier<List<FeedEntry>, String> {
     });
   }
 
-  Future<void> pullToRefresh() async {
+  Future<void> refresh() async {
     page = 0;
     state = await AsyncValue.guard(() async {
       return await fetch();

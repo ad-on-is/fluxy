@@ -46,36 +46,43 @@ class EntryList extends HookConsumerWidget {
       }
     });
 
-    return MasonryGridView.count(
-      itemCount: entries.length,
-      controller: controller,
-      addAutomaticKeepAlives: true,
-      semanticChildCount: entries.length,
-      crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
-      itemBuilder: (BuildContext context, int index) => EntryCard(
-        entry: entries[index],
-        onLaunched: (int id) {
-          ref.read(scrollToTopProvider.notifier).update((s) => true);
-          ref.read(seenProvider.notifier).markSeenAsRead();
-          ref
-              .read(entriesProvider("$sourceType:$sourceId").notifier)
-              .filterRead();
-        },
-        onOffScreen: (int id) {
-          ref.read(scrollToTopProvider.notifier).update((s) => false);
-          ref.read(seenProvider.notifier).markAsSeen(id);
-        },
-        onSeen: (int id) {
-          if (!config!.infiniteScroll) {
-            return;
-          }
-          final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
-          if (entries[idx].id == id) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref
+            .read(entriesProvider("$sourceType:$sourceId").notifier)
+            .refresh();
+      },
+      child: MasonryGridView.count(
+        itemCount: entries.length,
+        controller: controller,
+        addAutomaticKeepAlives: true,
+        semanticChildCount: entries.length,
+        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
+        itemBuilder: (BuildContext context, int index) => EntryCard(
+          entry: entries[index],
+          onLaunched: (int id) {
+            ref.read(scrollToTopProvider.notifier).update((s) => true);
+            ref.read(seenProvider.notifier).markSeenAsRead();
             ref
                 .read(entriesProvider("$sourceType:$sourceId").notifier)
-                .loadMore();
-          }
-        },
+                .filterRead();
+          },
+          onOffScreen: (int id) {
+            ref.read(scrollToTopProvider.notifier).update((s) => false);
+            ref.read(seenProvider.notifier).markAsSeen(id);
+          },
+          onSeen: (int id) {
+            if (!config!.infiniteScroll) {
+              return;
+            }
+            final idx = entries.length - 10 > 0 ? entries.length - 10 : 0;
+            if (entries[idx].id == id) {
+              ref
+                  .read(entriesProvider("$sourceType:$sourceId").notifier)
+                  .loadMore();
+            }
+          },
+        ),
       ),
     );
   }
