@@ -63,9 +63,12 @@ class EntryList extends HookConsumerWidget {
           onLaunched: (int id) {
             ref.read(scrollToTopProvider.notifier).update((s) => true);
             ref.read(seenProvider.notifier).markSeenAsRead();
-            ref
-                .read(entriesProvider("$sourceType:$sourceId").notifier)
-                .filterRead();
+            // prevent jumpy
+            Future.delayed(const Duration(seconds: 2), () {
+              ref
+                  .read(entriesProvider("$sourceType:$sourceId").notifier)
+                  .filterRead();
+            });
           },
           onOffScreen: (int id) {
             ref.read(scrollToTopProvider.notifier).update((s) => false);
